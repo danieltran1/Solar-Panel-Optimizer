@@ -1,0 +1,223 @@
+ #include <Servo.h>
+
+//Servo motor inputs
+Servo myservo;
+Servo myservo2;
+Servo myservo3;
+//Servo myservo4;
+//Servo myservo5;
+
+//Volated Reference
+float input_voltage = 0.0;
+float temp=0.0;
+float r1=100000.0;
+float r2=10000.0;
+
+ float X = 0;
+ float Y = 0;
+ float Z = 0;
+ float A = 0;
+ float B = 0;
+ float C = 0;
+ float pos = 0;
+ float t = 0;
+ 
+void setup() {
+  
+   // Set up motors
+     myservo.attach(9);  // Rotational Motor
+     myservo2.attach(6); //Tilting Motor 1
+     myservo3.attach(5); //Tilting Motor 2
+     //myservo4.attach(10); //Reflective Motor 1
+     //myservo5.attach(11); //Reflective Motor 2
+
+
+  // Opening Reflective Panels
+  //for (pos = 0; pos<=180; pos +=1){
+    //myservo4.write(pos);
+    //delay(15);
+  //}
+    //for (pos = 0; pos<=180; pos +=1){
+    //myservo5.write(pos);
+    //delay(15);
+  //}
+
+//delay (1000);
+//myservo4.detach();
+//myservo5.detach();
+
+  //Closing Reflective Panels (using a button)
+  //attachInterrupt(digitalPinToInterrupt(2), InterruptFunction, LOW);
+     
+   // Setup Serial Monitor
+   Serial.begin (9600);
+}
+
+void loop() {
+
+//re-attaches motors for loop after detach
+myservo.attach(9);  // Rotational Motor
+myservo2.attach(6); //Tilting Motor 1
+myservo3.attach(5); //Tilting Motor 2
+
+//Zero-ing Rotational Axis
+  //for (pos = 90; pos>=0; pos -=1){
+    //myservo.write(pos);
+    //delay(15);
+  //}
+  myservo.write(0);
+  
+//Hard Code Tilting Servo 1
+t = 0;
+while (t<=10){
+  myservo2.write(60); //assuming clockwise
+  delay(1000);
+  t = t +1;
+}
+  myservo2.write(90); //turns off motor 2
+  delay(1000);
+   
+ ///////////////////////
+//Rotational Base Axis//
+///////////////////////
+X = 0;
+Y = 0;
+Z = 0;
+while (X<181) {
+  myservo.write(X);
+  int analog_value = analogRead(A0);     
+  temp = (analog_value * 5.0) / 1024.0;   
+  input_voltage = temp / (r2/(r1+r2));        
+  if (input_voltage < 0.1)   
+  {     
+  input_voltage=0.0;    
+  }     
+  if (input_voltage > Y){
+    Y = input_voltage;
+    Z = X;
+  }
+  
+  Serial.print("   Volts = ");
+  Serial.print(input_voltage);
+  Serial.print("   Max Volts = ");
+  Serial.print(Y);
+  Serial.print("   Position = ");
+  Serial.println(Z);
+  delay(1000);
+  X = X+2; 
+  
+  
+}
+while (X>Z) {
+  myservo.write(X);
+  delay(1000);
+  X = X-2;
+}
+  myservo.detach();
+
+  
+///////////////////
+//Tilting Axis 1 //
+//////////////////
+X = 0;
+Y = 0;
+Z = 0;
+while (X<10) { //30 is the time it takes for the system to tilt all the way to zero
+  myservo2.write(120);
+  int analog_value = analogRead(A0);     
+  temp = (analog_value * 5.0) / 1024.0;   
+  input_voltage = temp / (r2/(r1+r2));        
+  if (input_voltage < 0.1)   
+  {     
+  input_voltage=0.0;    
+  }     
+  if (input_voltage > Y){
+    Y = input_voltage;
+    Z = X;
+  }
+  
+  Serial.print("   Volts = ");
+  Serial.print(input_voltage);
+  Serial.print("   Max Volts = ");
+  Serial.print(Y);
+  Serial.print("   Position = ");
+  Serial.println(Z);
+  delay(1000);
+  X = X+1;
+  
+}
+//moves tilting servo 1 to best optimum postion
+if (Z < 10) {
+  myservo2.write(60);
+  while (X>Z){
+    delay(1000);
+    X = X-1;
+  }
+  myservo2.write(90);
+  delay(1000);
+  myservo2.detach();
+}
+else {
+  myservo2.detach();
+}
+
+  
+///////////////////
+//Tilting Axis 2 //
+//////////////////
+A = 0;
+B = 0;
+C = 0;
+
+//Hard Code Tilting Servo 2
+//t = 0;
+//while (t<=10){
+  //myservo3.write(100); //assuming clockwise
+  //t = t +1;
+//}
+  //myservo3.write(90); //turns off motor 3
+
+//checks tilting axis for voltage
+while (A<10) {
+  myservo3.write(60);
+  int analog_value = analogRead(A0);     
+  temp = (analog_value * 5.0) / 1024.0;   
+  input_voltage = temp / (r2/(r1+r2));        
+  if (input_voltage < 0.1)   
+  {     
+  input_voltage=0.0;    
+  }     
+  if (input_voltage > Y){
+    Y = input_voltage;
+    Z = X;
+  }
+  
+  Serial.print("   Volts = ");
+  Serial.print(input_voltage);
+  Serial.print("   Max Volts = ");
+  Serial.print(Y);
+  Serial.print("   Position = ");
+  Serial.println(Z);
+  delay(1000);
+  A = A+1; 
+  
+}
+//moves tilting servo 1 to best optimum postion
+if (C < 10) {
+  myservo3.write(120); 
+  while (A>C){
+    delay(1000);
+    A = A-1;
+  }
+  myservo3.write(90);
+  delay(1000);
+  myservo3.detach();
+}
+else {
+  myservo3.detach();
+}
+
+  
+// System waits for 20 minutes 
+delay (1200000);
+}
